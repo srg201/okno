@@ -5,8 +5,9 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --color-swiss: #ff4f00;
-  --font-swiss: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --color-ember: #ff4f00;
+  --color-ash: #c8c8c8;
+  --color-smoke: #404040;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
@@ -125,5 +126,78 @@
   button:not(:disabled),
   [role="button"]:not(:disabled) {
     cursor: pointer;
+  }
+}
+
+/* ——— Лендинг ——— */
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+@keyframes preloader-out {
+  to {
+    transform: translateY(-100%);
+    visibility: hidden;
+  }
+}
+@keyframes glow-drift {
+  0%,
+  100% {
+    transform: translate(-10%, 0) scale(1);
+  }
+  50% {
+    transform: translate(10%, -6%) scale(1.15);
+  }
+}
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+.marquee-track {
+  animation: marquee 30s linear infinite;
+}
+.preloader {
+  animation: preloader-out 0.9s cubic-bezier(0.76, 0, 0.24, 1) 1.7s forwards;
+}
+.glow {
+  animation: glow-drift 18s ease-in-out infinite;
+}
+.float {
+  animation: float 6s ease-in-out infinite;
+}
+
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(48px);
+  transition:
+    opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+[data-reveal][data-visible="true"] {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track,
+  .glow,
+  .float {
+    animation: none;
+  }
+  .preloader {
+    animation-delay: 0s;
+    animation-duration: 0.01s;
+  }
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
   }
 }
