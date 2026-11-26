@@ -25,3 +25,4 @@ Next.js App Router + TypeScript, Tailwind + shadcn/ui, Drizzle + PostgreSQL, gra
 - shadcn/ui: стиль new-york, база Radix (`radix-ui`), иконки Lucide, тема в `src/app/globals.css`, компоненты в `src/components/ui`.
 - Компоненты добавляются через `npx shadcn@latest add <name>`. Если ui.shadcn.com недоступен (403), исходник берётся из `github.com/shadcn-ui/ui/apps/v4/registry/new-york-v4/ui/`, а импорт `"cn"` заменяется на `"@/lib/utils"`.
 - Next.js 16 отличается от старых версий: см. `AGENTS.md` и `node_modules/next/dist/docs/`.
+- Supabase: клиенты в `src/utils/supabase/` (`server.ts`, `client.ts`), сессию обновляет `src/proxy.ts` (в Next.js 16 middleware называется proxy). Ключи лежат в `.env.local`, шаблон — `.env.example`.
