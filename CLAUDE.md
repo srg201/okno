@@ -4,7 +4,7 @@
 
 ## Роли
 
-- Гость / клиент: смотрит страницу бизнеса `/{slug}`, выбирает услугу → мастера → время, входит (телефон, Apple, Google, Telegram) только на шаге подтверждения.
+- Гость / клиент: смотрит страницу бизнеса `/{slug}`, выбирает услугу → мастера → время, входит (Telegram, Google, Apple) только на шаге подтверждения.
 - Бизнес: solo (мастер-ИП) или team (владелец, администратор, мастер). Роль хранится в `membership`, а не в `user`.
 
 ## Правила, которые нельзя нарушать
@@ -31,6 +31,6 @@ Next.js App Router + TypeScript, Tailwind + shadcn/ui, Drizzle + PostgreSQL, gra
 - Компоненты добавляются через `npx shadcn@latest add <name>`. Если ui.shadcn.com недоступен (403), исходник берётся из `github.com/shadcn-ui/ui/apps/v4/registry/new-york-v4/ui/`, а импорт `"cn"` заменяется на `"@/lib/utils"`.
 - Next.js 16 отличается от старых версий: см. `AGENTS.md` и `node_modules/next/dist/docs/`.
 - Пакеты: только pnpm. Не ставьте пакеты при запущенном `pnpm dev` — Turbopack ломается, нужен перезапуск.
-- Вход: Better Auth (`src/lib/auth.ts`, клиент `src/lib/auth-client.ts`, роут `src/app/api/auth/[...all]`). Только по белорусскому номеру (+375 25/29/33/44) с кодом из SMS, плагин `phoneNumber`; первый вход создаёт аккаунт. Страница `/sign-in`.
-- SMS: `src/lib/sms.ts` → RocketSMS HTTP API. Без `ROCKETSMS_*` в dev код печатается в консоль сервера, в production — ошибка. Лимит отправки кодов: 3 за 10 минут с IP (rateLimit в базе).
+- Вход: Better Auth (`src/lib/auth.ts`, клиент `src/lib/auth-client.ts`, роут `src/app/api/auth/[...all]`) через Telegram (официальный OIDC, плагин `genericOAuth`), Google и Apple. Провайдер включается, только если заданы его переменные (`src/lib/auth-providers.ts`). Страницы `/sign-in` и `/account`.
+- Telegram: `accountId` в таблице `account` = числовой id пользователя Telegram, по нему бот пишет (`src/lib/telegram.ts`, `notifyUser(userId, text)`). Scope `telegram:bot_access` даёт боту право писать. Пользователь Google/Apple подключает Telegram в `/account` (`linkSocial`).
 - Таблицы Better Auth — `supabase/migrations/0002_better_auth.sql` (RLS включён без политик). Better Auth ходит в Postgres напрямую через `DATABASE_URL`; Supabase JS-клиент (`src/utils/supabase/server.ts`) — с публичным ключом и RLS. Supabase Auth не используем.

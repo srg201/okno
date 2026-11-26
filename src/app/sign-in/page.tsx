@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { PhoneSignIn } from "@/components/auth/phone-sign-in";
+import { SocialSignIn } from "@/components/auth/social-sign-in";
+import { enabled, type ProviderId } from "@/lib/auth-providers";
 
 export const metadata: Metadata = { title: "Вход — okno" };
 
+const order: ProviderId[] = ["telegram", "google", "apple"];
+
 export default function SignInPage() {
+  const providers = order.filter((p) => enabled[p]);
+
   return (
     <div className="relative flex min-h-svh flex-col overflow-hidden bg-black px-4 text-ash md:px-8">
       <div
@@ -25,9 +30,10 @@ export default function SignInPage() {
             Вход
           </h1>
           <p className="mt-3">
-            По номеру телефона. Пришлём код в SMS — пароль не нужен.
+            Первый вход сразу создаёт аккаунт. Через Telegram удобнее всего:
+            туда будут приходить новые записи и отмены.
           </p>
-          <PhoneSignIn />
+          <SocialSignIn providers={providers} />
         </div>
       </main>
     </div>

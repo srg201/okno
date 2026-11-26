@@ -1,46 +1,86 @@
 import "server-only";
-import { betterAuth } from "better-auth";
+import { betterAuth, type BetterAuthOptions } from "better-auth";
 import { nextCookies } from "better-auth/next-js";
-import { phoneNumber } from "better-auth/plugins";
-import { Pool } from "pg";
-import { BY_PHONE } from "@/lib/phone";
-import { sendSms } from "@/lib/sms";
+import { genericOAuth } from "better-auth/plugins";
+import { pool } from "@/lib/db";
+import { appleClientSecret, enabled, readIdToken } from "@/lib/auth-providers";
 
-// Пользователи и сессии лежат в той же базе Supabase (Postgres), таблицы — в миграции 0002.
+const socialProviders: BetterAuthOptions["socialProviders"] = {};
+
+if (enabled.google) {
+  socialProviders.google = {
+    clientId: process.env.GOOGLE_CLIENT_ID!,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    prompt: "select_account",
+  };
+}
+
+if (enabled.apple) {
+  socialProviders.apple = {
+    clientId: process.env.APPLE_CLIENT_ID!,
+    clientSecret: await appleClientSecret(),
+  };
+}
+
+// Telegram — официальный OpenID Connect (core.telegram.org/bots/telegram-login).
+// accountId = числовой id пользователя в Telegram: по нему бот пишет уведомления.
+const telegram = enabled.telegram
+  ? genericOAuth({
+      config: [
+        {
+          providerId: "telegram",
+          name: "Telegram",
+          discoveryUrl:
+            "https://oauth.telegram.org/.well-known/openid-configuration",
+          clientId: process.env.TELEGRAM_CLIENT_ID!,
+          clientSecret: process.env.TELEGRAM_CLIENT_SECRET!,
+          authentication: "basic",
+          scopes: ["openid", "profile", "telegram:bot_access"],
+          pkce: true,
+          // У Telegram нет UserInfo и email — профиль берём из id_token
+          getUserInfo: async (tokens) => {
+            if (!tokens.idToken) return null;
+            const c = readIdToken(tokens.idToken);
+            const id = String(c.id ?? c.sub);
+            return {
+              sub: c.sub as string,
+              id,
+              name:
+                (c.name as string) ||
+                (c.preferred_username as string) ||
+                "Telegram",
+              image: c.picture as string | undefined,
+              email: `tg${id}@telegram.okno.invalid`,
+              emailVerified: false,
+              username: c.preferred_username,
+            };
+          },
+          accountSubject: ({ profile }) => String(profile.id ?? profile.sub),
+        },
+      ],
+    })
+  : null;
+
 export const auth = betterAuth({
-  database: new Pool({ connectionString: process.env.DATABASE_URL }),
+  database: pool,
   telemetry: { enabled: false },
+  trustedOrigins: enabled.apple ? ["https://appleid.apple.com"] : [],
   session: {
     expiresIn: 60 * 60 * 24 * 60, // 60 дней
     updateAge: 60 * 60 * 24,
   },
-  rateLimit: {
-    enabled: true,
-    storage: "database",
-    customRules: {
-      // каждая SMS стоит денег: не больше 3 кодов в 10 минут с одного IP
-      "/phone-number/send-otp": { window: 600, max: 3 },
-      "/phone-number/verify": { window: 60, max: 10 },
+  account: {
+    accountLinking: {
+      enabled: true,
+      // Google и Apple сами подтверждают почту — склеиваем аккаунты с одним email
+      trustedProviders: ["google", "apple"],
+      // к Google-аккаунту можно привязать Telegram, у которого почты нет
+      allowDifferentEmails: true,
     },
   },
-  plugins: [
-    phoneNumber({
-      otpLength: 6,
-      expiresIn: 300,
-      allowedAttempts: 3,
-      phoneNumberValidator: (phone) => BY_PHONE.test(phone),
-      sendOTP: async ({ phoneNumber, code }) => {
-        await sendSms(phoneNumber, `Код для входа в okno: ${code}`);
-      },
-      // первый вход по номеру сразу создаёт аккаунт
-      signUpOnVerification: {
-        getTempEmail: (phone) =>
-          `${phone.replace(/\D/g, "")}@phone.okno.invalid`,
-        getTempName: (phone) => phone,
-      },
-    }),
-    nextCookies(), // последним: ставит cookie из Server Actions
-  ],
+  rateLimit: { enabled: true, storage: "database" },
+  socialProviders,
+  plugins: [...(telegram ? [telegram] : []), nextCookies()],
 });
 
 export type Session = typeof auth.$Infer.Session;
