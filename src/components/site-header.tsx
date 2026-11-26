@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 
 const nav = [
+  { href: "#masters", label: "Для кого" },
   { href: "#how", label: "Как работает" },
   { href: "#features", label: "Возможности" },
   { href: "#pricing", label: "Цены" },

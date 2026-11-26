@@ -1,8 +1,10 @@
 import { SiteHeader } from "@/components/site-header";
 import { HeroCards } from "@/components/landing/hero-cards";
+import { ParallaxImage } from "@/components/landing/parallax-image";
 import { Preloader } from "@/components/landing/preloader";
 import { Reveal } from "@/components/landing/reveal";
 import { ScrollWords } from "@/components/landing/scroll-words";
+import { SmoothScroll } from "@/components/landing/smooth-scroll";
 import { WaitlistForm } from "@/components/landing/waitlist-form";
 
 const niches = [
@@ -12,6 +14,36 @@ const niches = [
   "бровисты",
   "массажисты",
   "тату-мастера",
+];
+
+// Фото — Unsplash License (бесплатно, в том числе для коммерции).
+const u = (id: string) =>
+  `https://images.unsplash.com/photo-${id}?w=1200&q=80&fit=crop`;
+const masters = [
+  {
+    who: "Барберы",
+    text: "Стрижка, борода, комплекс. Клиент сам выбирает окно между вашими записями.",
+    src: u("1647140655214-e4a2d914971f"),
+    alt: "Барбер стрижёт клиента ножницами",
+    credit: "Nate Johnston",
+    page: "https://unsplash.com/photos/tgPrIYnW3g4",
+  },
+  {
+    who: "Мастера маникюра",
+    text: "Длинные процедуры, перерыв на уборку между клиентами, напоминание накануне.",
+    src: u("1632345031435-8727f6897d53"),
+    alt: "Мастер делает маникюр клиентке",
+    credit: "Giorgio Trovato",
+    page: "https://unsplash.com/photos/gb6gtiTZKB8",
+  },
+  {
+    who: "Репетиторы",
+    text: "Постоянные ученики, занятия по расписанию, отмена не позже чем за сутки.",
+    src: u("1785780224428-1e71ec3a1199"),
+    alt: "Репетитор занимается с учеником за столом",
+    credit: "Nathan Dumlao",
+    page: "https://unsplash.com/photos/JZXGFdD6UDk",
+  },
 ];
 
 const steps = [
@@ -132,6 +164,7 @@ function SectionLabel({
 export default function Home() {
   return (
     <div className="overflow-x-clip bg-black text-ash selection:bg-ember selection:text-white">
+      <SmoothScroll />
       <Preloader />
       <SiteHeader />
 
@@ -185,9 +218,45 @@ export default function Home() {
           </div>
         </section>
 
-        {/* 01 How */}
+        {/* 01 Masters */}
+        <section id="masters" className="scroll-mt-16 px-4 pb-32 md:px-8">
+          <SectionLabel n="01">Для кого</SectionLabel>
+          <div className="mt-10 grid gap-4 md:grid-cols-3">
+            {masters.map((m, i) => (
+              <Reveal key={m.who} delay={i * 100} className="group">
+                <ParallaxImage
+                  src={m.src}
+                  alt={m.alt}
+                  sizes="(min-width: 768px) 33vw, 100vw"
+                  className={
+                    "aspect-[3/4] rounded-3xl " + (i === 1 ? "md:mt-24" : "")
+                  }
+                />
+                <div className="mt-5 flex items-baseline justify-between gap-4">
+                  <h3 className="text-3xl font-semibold tracking-tight text-white transition-colors group-hover:text-ember md:text-4xl">
+                    {m.who}
+                  </h3>
+                  <span className="text-sm tabular-nums">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                </div>
+                <p className="mt-2 max-w-sm leading-snug">{m.text}</p>
+                <a
+                  href={m.page}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 inline-block text-xs text-smoke hover:text-ash"
+                >
+                  Фото: {m.credit}, Unsplash
+                </a>
+              </Reveal>
+            ))}
+          </div>
+        </section>
+
+        {/* 02 How */}
         <section id="how" className="scroll-mt-16 px-4 pb-32 md:px-8">
-          <SectionLabel n="01">Как клиент записывается</SectionLabel>
+          <SectionLabel n="02">Как клиент записывается</SectionLabel>
           <div className="mt-10 grid gap-px overflow-hidden rounded-3xl bg-white/10 sm:grid-cols-2 lg:grid-cols-5">
             {steps.map((s, i) => (
               <Reveal key={s.title} delay={i * 80} className="bg-black p-6">
@@ -205,7 +274,7 @@ export default function Home() {
 
         {/* 02 Features */}
         <section id="features" className="scroll-mt-16 px-4 pb-32 md:px-8">
-          <SectionLabel n="02">Возможности</SectionLabel>
+          <SectionLabel n="03">Возможности</SectionLabel>
           <h2 className="mt-10 max-w-4xl text-5xl leading-[0.95] font-semibold tracking-tight text-white md:text-8xl">
             Всё для одного мастера. Ничего лишнего.
           </h2>
@@ -234,7 +303,7 @@ export default function Home() {
 
         {/* 03 Pricing */}
         <section id="pricing" className="scroll-mt-16 px-4 pb-32 md:px-8">
-          <SectionLabel n="03">Цены</SectionLabel>
+          <SectionLabel n="04">Цены</SectionLabel>
           <div className="mt-10 grid gap-4 md:grid-cols-3">
             {plans.map((p, i) => (
               <Reveal
@@ -287,7 +356,7 @@ export default function Home() {
 
         {/* 04 Comparison */}
         <section className="px-4 pb-32 md:px-8">
-          <SectionLabel n="04">Если вы сейчас в YCLIENTS</SectionLabel>
+          <SectionLabel n="05">Если вы сейчас в YCLIENTS</SectionLabel>
           <div className="mt-10 overflow-x-auto">
             <table className="w-full min-w-[36rem] border-collapse text-left">
               <thead>
@@ -336,7 +405,7 @@ export default function Home() {
             className="glow absolute -bottom-1/2 left-1/2 size-[60vmax] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,#ff4f00_0%,#7a1d00_35%,transparent_70%)] opacity-50 blur-3xl"
           />
           <div className="relative">
-            <SectionLabel n="05">Лист ожидания</SectionLabel>
+            <SectionLabel n="06">Лист ожидания</SectionLabel>
             <div className="mt-10 grid gap-12 md:grid-cols-12">
               <h2 className="text-5xl leading-[0.95] font-semibold tracking-tight text-white md:col-span-6 md:text-8xl">
                 Откроем доступ первым из списка
