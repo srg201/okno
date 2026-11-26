@@ -17,9 +17,23 @@ const geistMono = Geist_Mono({
   subsets: ["latin", "cyrillic"],
 });
 
+const description =
+  "Страница записи, календарь и напоминания в Telegram для мастера, который работает один. От $0 в месяц.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+  ),
   title: "Okno — онлайн-запись к мастерам",
-  description: "Онлайн-запись к мастерам: дёшево, просто и красиво.",
+  description,
+  openGraph: {
+    type: "website",
+    locale: "ru_RU",
+    siteName: "okno",
+    title: "Okno — онлайн-запись к мастерам",
+    description,
+  },
+  twitter: { card: "summary_large_image" },
 };
 
 export const viewport: Viewport = {
