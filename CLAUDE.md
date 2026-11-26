@@ -3,10 +3,12 @@
 Сервис онлайн-записи к мастерам (барберы, маникюр, репетиторы). Полный PRD: https://claude.ai/artifact/Fg6rZbNyoxJxxYig8onEJv
 
 ## Роли
+
 - Гость / клиент: смотрит страницу бизнеса `/{slug}`, выбирает услугу → мастера → время, входит (телефон, Apple, Google, Telegram) только на шаге подтверждения.
 - Бизнес: solo (мастер-ИП) или team (владелец, администратор, мастер). Роль хранится в `membership`, а не в `user`.
 
 ## Правила, которые нельзя нарушать
+
 - Двойная запись невозможна: в PostgreSQL exclusion constraint на `booking` по (staff_id, tstzrange(starts_at, ends_at)) для активных статусов.
 - Время хранится в UTC, показывается в часовом поясе бизнеса.
 - Расчёт свободных слотов — одна чистая функция с тестами.
@@ -15,17 +17,20 @@
 - Mobile-first: цели касания не меньше 44 px.
 
 ## Стек
+
 Next.js App Router + TypeScript, Tailwind + shadcn/ui, Drizzle + PostgreSQL, grammY, Resend, Stripe, Vercel.
 
 ## Сейчас
+
 Этап 1 — MVP для мастера-одиночки. Команды, депозиты, каталог и нативные приложения в MVP не входят.
 
 ## Разработка
+
 - `pnpm dev` / `build` / `lint` / `typecheck` / `format`.
 - shadcn/ui: стиль new-york, база Radix (`radix-ui`), иконки Lucide, тема в `src/app/globals.css`, компоненты в `src/components/ui`.
 - Компоненты добавляются через `npx shadcn@latest add <name>`. Если ui.shadcn.com недоступен (403), исходник берётся из `github.com/shadcn-ui/ui/apps/v4/registry/new-york-v4/ui/`, а импорт `"cn"` заменяется на `"@/lib/utils"`.
 - Next.js 16 отличается от старых версий: см. `AGENTS.md` и `node_modules/next/dist/docs/`.
 - Пакеты: только pnpm. Не ставьте пакеты при запущенном `pnpm dev` — Turbopack ломается, нужен перезапуск.
-- Вход: Clerk (`@clerk/nextjs`), `ClerkProvider` в `src/app/layout.tsx` (тема shadcn, локализация ruRU), `src/proxy.ts` — `clerkMiddleware()`. `<Show>`, `auth()` и `currentUser()` в Server Components — только внутри `<Suspense>` (cacheComponents).
-- Supabase — только база данных: клиенты в `src/utils/supabase/` передают токен Clerk (`accessToken`), RLS читает пользователя из `auth.jwt()->>'sub'`. Supabase Auth не используем.
-- `NEXT_PUBLIC_CLERK_KEYLESS_DISABLED=true` обязателен: keyless-режим Clerk ломает проверку `instant`.
+- Вход: Better Auth (`src/lib/auth.ts`, клиент `src/lib/auth-client.ts`, роут `src/app/api/auth/[...all]`). Только по белорусскому номеру (+375 25/29/33/44) с кодом из SMS, плагин `phoneNumber`; первый вход создаёт аккаунт. Страница `/sign-in`.
+- SMS: `src/lib/sms.ts` → RocketSMS HTTP API. Без `ROCKETSMS_*` в dev код печатается в консоль сервера, в production — ошибка. Лимит отправки кодов: 3 за 10 минут с IP (rateLimit в базе).
+- Таблицы Better Auth — `supabase/migrations/0002_better_auth.sql` (RLS включён без политик). Better Auth ходит в Postgres напрямую через `DATABASE_URL`; Supabase JS-клиент (`src/utils/supabase/server.ts`) — с публичным ключом и RLS. Supabase Auth не используем.

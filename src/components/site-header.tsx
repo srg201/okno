@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { Suspense } from "react";
-import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+import { AuthButtons } from "@/components/auth/auth-buttons";
 
 const nav = [
   { href: "#masters", label: "Для кого" },
@@ -23,26 +22,7 @@ export function SiteHeader() {
             </a>
           ))}
         </nav>
-        <div className="flex items-center gap-1">
-          {/* <Show> читает запрос — при cacheComponents нужен <Suspense> */}
-          <Suspense>
-            <Show when="signed-out">
-              <SignInButton>
-                <button className="h-11 px-3 text-sm hover:opacity-60">
-                  Войти
-                </button>
-              </SignInButton>
-              <SignUpButton>
-                <button className="hidden h-11 rounded-full border border-white px-5 text-sm hover:bg-white hover:text-black sm:block">
-                  Регистрация
-                </button>
-              </SignUpButton>
-            </Show>
-            <Show when="signed-in">
-              <UserButton />
-            </Show>
-          </Suspense>
-        </div>
+        <AuthButtons />
       </div>
     </header>
   );
