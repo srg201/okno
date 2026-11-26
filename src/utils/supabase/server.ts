@@ -1,26 +1,19 @@
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import "server-only";
+import { auth } from "@clerk/nextjs/server";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
 
-export const createClient = (
-  cookieStore: Awaited<ReturnType<typeof cookies>>,
-) => {
-  return createServerClient(supabaseUrl, supabaseKey, {
-    cookies: {
-      getAll() {
-        return cookieStore.getAll();
-      },
-      setAll(cookiesToSet) {
-        try {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options),
-          );
-        } catch {
-          // Вызвано из Server Component — сессию обновляет src/proxy.ts.
-        }
-      },
+/**
+ * Supabase для Server Components, Server Actions и Route Handlers.
+ * Вход — через Clerk: токен сессии Clerk передаётся в Supabase,
+ * RLS-политики читают пользователя из auth.jwt()->>'sub'.
+ */
+export function createClient() {
+  return createSupabaseClient(supabaseUrl, supabaseKey, {
+    async accessToken() {
+      return (await auth()).getToken();
     },
   });
-};
+}

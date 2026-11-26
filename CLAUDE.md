@@ -21,8 +21,11 @@ Next.js App Router + TypeScript, Tailwind + shadcn/ui, Drizzle + PostgreSQL, gra
 Этап 1 — MVP для мастера-одиночки. Команды, депозиты, каталог и нативные приложения в MVP не входят.
 
 ## Разработка
-- `npm run dev` / `build` / `lint` / `typecheck` / `format`.
+- `pnpm dev` / `build` / `lint` / `typecheck` / `format`.
 - shadcn/ui: стиль new-york, база Radix (`radix-ui`), иконки Lucide, тема в `src/app/globals.css`, компоненты в `src/components/ui`.
 - Компоненты добавляются через `npx shadcn@latest add <name>`. Если ui.shadcn.com недоступен (403), исходник берётся из `github.com/shadcn-ui/ui/apps/v4/registry/new-york-v4/ui/`, а импорт `"cn"` заменяется на `"@/lib/utils"`.
 - Next.js 16 отличается от старых версий: см. `AGENTS.md` и `node_modules/next/dist/docs/`.
-- Supabase: клиенты в `src/utils/supabase/` (`server.ts`, `client.ts`), сессию обновляет `src/proxy.ts` (в Next.js 16 middleware называется proxy). Ключи лежат в `.env.local`, шаблон — `.env.example`.
+- Пакеты: только pnpm. Не ставьте пакеты при запущенном `pnpm dev` — Turbopack ломается, нужен перезапуск.
+- Вход: Clerk (`@clerk/nextjs`), `ClerkProvider` в `src/app/layout.tsx` (тема shadcn, локализация ruRU), `src/proxy.ts` — `clerkMiddleware()`. `<Show>`, `auth()` и `currentUser()` в Server Components — только внутри `<Suspense>` (cacheComponents).
+- Supabase — только база данных: клиенты в `src/utils/supabase/` передают токен Clerk (`accessToken`), RLS читает пользователя из `auth.jwt()->>'sub'`. Supabase Auth не используем.
+- `NEXT_PUBLIC_CLERK_KEYLESS_DISABLED=true` обязателен: keyless-режим Clerk ломает проверку `instant`.
